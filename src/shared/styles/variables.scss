@@ -1,0 +1,46 @@
+:root {
+  --primary-color: #000000;
+  --secondary-color: #afadb5;
+  --accent-color: #518581;
+}
+
+$primary-color: var(--primary-color);
+$secondary-color: var(--secondary-color);
+$accent-color: var(--accent-color);
+
+$error-color: #ef4444;
+$link-color: #0066ff;
+
+$site-bg-color: #fafafa;
+$header-bg-color: #ffffff;
+$header-border-color: #f3f3f3;
+
+$btn-bg-color: #518581;
+$btn-text-color: #ffffff;
+$btn-over-color: #86aaa7;
+$btn-disabled-color: #d9d9d9;
+$btn-pressed-color: #487773;
+
+$dropdown-bg-color: #ffffff;
+$dropdown-hover-color: #d9d9d9;
+
+$cart-badge-color: #e78e3a;
+$user-initials-color: #518581;
+$user-initials-over-color: #86aaa7;
+
+$font-family: "Roboto", sans-serif;
+
+$card-bg-color: #ffffff;
+$card-img-bg-color: #ffffff;
+
+$spacing-sm: 1.5rem;
+$spacing-md: 2rem;
+$spacing-lg: 3rem;
+$spacing-xl: 3rem;
+
+$breakpoints: (
+  "sm": 375px,
+  "md": 768px,
+  "lg": 1024px,
+  "xl": 1440px,
+);
