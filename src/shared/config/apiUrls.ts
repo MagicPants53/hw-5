@@ -15,7 +15,10 @@ export const apiUrls = {
     query
       ? `${API_BASE_URL}${paths.products}/${documentId}?${query}`
       : `${API_BASE_URL}${paths.products}/${documentId}`,
-  productCategories: () => `${API_BASE_URL}${paths.productCategories}`,
+  productCategories: (query?: string) =>
+    query
+      ? `${API_BASE_URL}${paths.productCategories}?${query}`
+      : `${API_BASE_URL}${paths.productCategories}`,
   auth: {
     login: `${API_BASE_URL}${paths.login}`,
     register: `${API_BASE_URL}${paths.register}`,

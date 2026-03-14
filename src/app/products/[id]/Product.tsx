@@ -46,7 +46,7 @@ const Product = ({ id, initData }: Props) => {
         <div className={styles.back_link}>
           <Link href={paths.products}>
             <ArrowDownIcon style={{ transform: "rotate(90deg)" }} />
-            <Text view="p-20">Назад</Text>
+            <Text view="p-20">Back</Text>
           </Link>
         </div>
         <Text view="title">Товар не найден</Text>
@@ -59,7 +59,7 @@ const Product = ({ id, initData }: Props) => {
         <div className={styles.back_link}>
           <Link href={paths.products}>
             <ArrowDownIcon style={{ transform: "rotate(90deg)" }} />
-            <Text view="p-20">Назад</Text>
+            <Text view="p-20">Back</Text>
           </Link>
         </div>
         <ProductInfo

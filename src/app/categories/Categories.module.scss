@@ -1,0 +1,22 @@
+.subinfo {
+  width: 60%;
+  margin: 3em auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  & p {
+    text-align: center;
+  }
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1em;
+  margin: 2em;
+
+  @include respond("md") {
+    grid-template-columns: 1fr 1fr;
+  }
+}

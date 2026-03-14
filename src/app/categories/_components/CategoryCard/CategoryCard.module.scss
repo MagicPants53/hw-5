@@ -1,0 +1,40 @@
+.categoryCard {
+  display: flex;
+  align-items: center;
+  background-color: $card-bg-color;
+  border: 1px solid $secondary-color;
+  border-radius: 10px;
+  gap: $spacing-sm;
+  overflow: hidden;
+
+  p {
+    font-size: 20px;
+  }
+
+  .containerImage {
+    width: 100px;
+    height: 100px;
+  }
+
+  .image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    background-color: $card-img-bg-color;
+  }
+}
+
+@include respond("lg") {
+  .categoryCard .containerImage {
+    width: 200px;
+    height: 200px;
+  }
+
+  .categoryCard {
+    gap: $spacing-xl;
+
+    p {
+      font-size: 32px;
+    }
+  }
+}
