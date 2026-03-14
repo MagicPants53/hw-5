@@ -1,0 +1,47 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: $site-bg-color;
+  font-family: $font-family;
+  color: $primary-color;
+}
+
+a,
+a:active,
+a:link,
+a:visited {
+  text-decoration: none;
+  color: initial;
+}
+
+a:hover {
+  color: $accent-color;
+}
+
+button {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer; /* Добавьте для интерактивности */
+}
+
+#root {
+  margin: 0 auto;
+  text-align: center;
+
+  @include respond("sm") {
+    max-width: 668px;
+  }
+
+  @include respond("md") {
+    max-width: 924px;
+  }
+
+  @include respond("lg") {
+    max-width: 1240px;
+  }
+}

@@ -1,0 +1,52 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import classNames from "classnames";
+
+import Loader from "../Loader";
+import Text from "../Text";
+
+import styles from "./Button.module.scss";
+
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  /** Состояние загрузки */
+  loading?: boolean;
+  /** Тип кнопки */
+  view?: 'normal' | 'ghost';
+  /** Текст кнопки */
+  children: React.ReactNode;
+};
+
+const Button: React.FC<ButtonProps> = ({ loading, view = 'normal', children, ...props }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isPressed, setIsPressed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(!!loading);
+  }, [loading]);
+
+  return (
+    <button
+      {...props}
+      className={classNames(styles.button, props.className, {
+        btn_pressed: isPressed && !isLoading,
+        btn_over: !isPressed && isHovered && !isLoading,
+        btn_disabled: props.disabled,
+        ghost: view === 'ghost',
+      })}
+      disabled={isLoading || props.disabled}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isLoading ? <Loader size="s" /> : null}
+      <Text view="button" maxLines={1}>
+        {children}
+      </Text>
+    </button>
+  );
+};
+
+export default Button;
