@@ -1,37 +1,75 @@
 "use client";
-import Text from "@/shared/components/Text";
-import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
-import ProductInfo from "./_components/ProductInfo";
+
+import Link from "next/link";
+import { observer, useLocalObservable } from "mobx-react-lite";
 
 import { paths } from "@/shared/config/paths";
-import { Meta } from "@/shared/utils/meta";
-import { ProductType } from "@/shared/types/product";
-import styles from "./Product.module.scss";
-import Link from "next/link";
 import { useCart } from "@/shared/store/RootStore/hooks/useCart";
+import SingleProductStore from "@/shared/store/SingleProductStore";
+import type { ProductType } from "@/shared/types/product";
+import Text from "@/shared/components/Text";
+import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
+import Loader from "@/shared/components/Loader";
+import { Meta } from "@/shared/utils/meta";
+
+import ProductInfo from "./_components/ProductInfo";
+import styles from "./Product.module.scss";
 
 type Props = {
-  product: ProductType;
-  meta: Meta;
+  id: string;
+  initData: {
+    product: ProductType | null;
+    meta: Meta;
+  };
 };
 
-const Product = ({ product, meta }: Props) => {
+const Product = ({ id, initData }: Props) => {
+  const singleProductStore = useLocalObservable(() =>
+    SingleProductStore.fromInitialData(initData.product, initData.meta),
+  );
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    addToCart(product, 1);
+    if (singleProductStore.product) addToCart(singleProductStore.product, 1);
   };
 
-  return (
-    <div className={styles.product}>
-      <div className={styles.back_link}>
-        <Link href={paths.products}>
-          <ArrowDownIcon style={{ transform: "rotate(90deg)" }} />
-          <Text view="p-20">Назад</Text>
-        </Link>
+  if (singleProductStore.meta === Meta.loading)
+    return (
+      <div className={styles.loader}>
+        <Loader size="xl" />
       </div>
-      <ProductInfo product={product} onAddToCart={handleAddToCart} />
-    </div>
-  );
+    );
+
+  if (singleProductStore.meta === Meta.error)
+    return (
+      <div className={styles.product}>
+        <div className={styles.back_link}>
+          <Link href={paths.products}>
+            <ArrowDownIcon style={{ transform: "rotate(90deg)" }} />
+            <Text view="p-20">Назад</Text>
+          </Link>
+        </div>
+        <Text view="title">Товар не найден</Text>
+      </div>
+    );
+
+  if (singleProductStore.product)
+    return (
+      <div className={styles.product}>
+        <div className={styles.back_link}>
+          <Link href={paths.products}>
+            <ArrowDownIcon style={{ transform: "rotate(90deg)" }} />
+            <Text view="p-20">Назад</Text>
+          </Link>
+        </div>
+        <ProductInfo
+          product={singleProductStore.product}
+          onAddToCart={handleAddToCart}
+        />
+      </div>
+    );
+
+  return null;
 };
-export default Product;
+
+export default observer(Product);

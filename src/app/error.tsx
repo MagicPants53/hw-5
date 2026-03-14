@@ -1,9 +1,10 @@
 "use client";
+
 import Link from "next/link";
 
-import Text from "@/shared/components/Text";
-import Button from "@/shared/components/Button";
 import { paths } from "@/shared/config/paths";
+import Button from "@/shared/components/Button";
+import Text from "@/shared/components/Text";
 
 type ErrorProps = {
   error: Error & { digest?: string };

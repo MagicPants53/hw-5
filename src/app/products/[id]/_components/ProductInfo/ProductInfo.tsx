@@ -1,14 +1,15 @@
 "use client";
+
 import type { FC } from "react";
-import { ProductType } from "@/shared/types/product";
+import { useRouter } from "next/navigation";
+
+import { paths } from "@/shared/config/paths";
+import Button from "@/shared/components/Button";
+import Text from "@/shared/components/Text";
+import type { ProductType } from "@/shared/types/product";
 
 import Slider from "../Slider";
-import Text from "@/shared/components/Text";
-import Button from "@/shared/components/Button";
-
 import styles from "./ProductInfo.module.scss";
-import { useRouter } from "next/navigation";
-import { paths } from "@/shared/config/paths";
 
 type ProductInfoProps = {
   product: ProductType;

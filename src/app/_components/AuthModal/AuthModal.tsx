@@ -1,23 +1,26 @@
 "use client";
+
+import { useState, type FC } from "react";
 import { observer } from "mobx-react-lite";
-import { useEffect, useState, type FC } from "react";
 
-import { Meta } from "@/shared/utils/meta";
+import { DEFAULT_FORM, FormDataType } from "@/shared/config/formDefaults";
+import Modal from "@/shared/components/Modal";
 import Text from "@/shared/components/Text";
-
-import styles from "./AuthModal.module.scss";
-import Input from "@/shared/components/Input";
-import Button from "@/shared/components/Button";
 import { useRootStore } from "@/shared/providers/StoreProvider";
+import { Meta } from "@/shared/utils/meta";
+
+import Form from "../Form";
+import Button from "@/shared/components/Button";
+import styles from "./AuthModal.module.scss";
 
 type AuthModalProps = {
   isOpen: boolean;
-  onClose: () => void;
+  ref?: React.RefObject<HTMLDivElement | null>;
 };
 
-const AuthModalContent: FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [form, setForm] = useState({ email: "", password: "", username: "" });
+const AuthModalContent: FC<AuthModalProps> = ({ isOpen, ref }) => {
+  const [isLogin, setIsLogin] = useState<boolean>(true);
+  const [form, setForm] = useState<FormDataType>(DEFAULT_FORM);
 
   const { userStore } = useRootStore();
   const meta = userStore.meta;
@@ -25,97 +28,40 @@ const AuthModalContent: FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mode === "login") {
-      userStore.login(form.email, form.password);
+    if (isLogin) {
+      userStore.enter(form.email, form.password);
     } else {
-      userStore.register(form.username, form.email, form.password);
+      userStore.enter(form.email, form.password, form.username);
     }
   };
-
-  const handleClose = () => {
-    if (meta !== Meta.loading) {
-      onClose();
-    }
-  };
-
-  useEffect(() => {
-    if (meta === Meta.success) {
-      const timer = setTimeout(onClose, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [meta, onClose]);
-
-  if (meta === Meta.success || !isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay} onClick={handleClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <Text view="title">
-          {mode === "login" ? "Log in" : "Create an account"}
-        </Text>
+    <Modal isOpen={isOpen} position="center" ref={ref}>
+      <Text view="title">{isLogin ? "Log in" : "Create an account"}</Text>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          {mode === "register" && (
-            <Input
-              placeholder="Username"
-              value={form.username}
-              onChange={(value) => setForm({ ...form, username: value })}
-              autoComplete="username"
-              required
-            />
-          )}
+      <Form
+        data={form}
+        isLogin={isLogin}
+        meta={meta}
+        setData={setForm}
+        onSubmit={(e) => handleSubmit(e)}
+      />
 
-          <Input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(value) => setForm({ ...form, email: value })}
-            autoComplete={mode === "login" ? "email" : "email"}
-            required
-          />
-
-          <Input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(value) => setForm({ ...form, password: value })}
-            autoComplete={
-              mode === "login" ? "current-password" : "new-password"
-            }
-            required
-          />
-
-          <Button
-            type="submit"
-            disabled={meta === Meta.loading || !form.email || !form.password}
-            loading={meta === Meta.loading}
-          >
-            {meta === Meta.loading
-              ? "Loading..."
-              : mode === "login"
-                ? "Log in"
-                : "Register"}
-          </Button>
-        </form>
-
-        {meta === Meta.error && (
-          <div className={styles.error}>
-            <Text>{errorMsg}</Text>
-          </div>
-        )}
-
-        <div className={styles.modalToggle}>
-          <Text view="p-14" color="secondary">
-            {mode === "login" ? "No account?" : "Have an account?"}
-          </Text>
-          <Button
-            onClick={() => setMode(mode === "login" ? "register" : "login")}
-          >
-            {mode === "login" ? "Create an account" : "Log in"}
-          </Button>
+      {meta === Meta.error && (
+        <div className={styles.error}>
+          <Text>{errorMsg}</Text>
         </div>
+      )}
+
+      <div className={styles.modalToggle}>
+        <Text view="p-14" color="secondary">
+          {isLogin ? "No account?" : "Have an account?"}
+        </Text>
+        <Button onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? "Create an account" : "Log in"}
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 };
 

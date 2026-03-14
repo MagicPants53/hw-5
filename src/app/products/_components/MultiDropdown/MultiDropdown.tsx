@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
+import Input from "@/shared/components/Input";
+import Text from "@/shared/components/Text";
 
 import styles from "./MultiDropdown.module.scss";
-import Input from "@/shared/components/Input";
-import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
-import Text from "@/shared/components/Text";
 
 export type Option = {
   /** Ключ варианта, используется для отправки на бек/использования в коде */
@@ -53,8 +60,16 @@ const MultiDropdown: React.FC<MultiDropdownProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredOptions = options.filter((option) =>
-    option.value.toLowerCase().includes(search.toLowerCase()),
+  useEffect(() => {
+    setSearch("");
+  }, [value]);
+
+  const filteredOptions = useMemo(
+    () =>
+      options.filter((option) =>
+        option.value.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [options, search],
   );
 
   const isSelected = useCallback(
@@ -64,21 +79,22 @@ const MultiDropdown: React.FC<MultiDropdownProps> = ({
     [value],
   );
 
-  const toggleOption = (option: Option) => {
-    const newValue = isSelected(option)
-      ? value.filter((selected) => selected.key !== option.key)
-      : [...value, option];
-    onChange(newValue);
-  };
+  const toggleOption = useCallback(
+    (option: Option) => {
+      const newValue = isSelected(option)
+        ? value.filter((selected) => selected.key !== option.key)
+        : [...value, option];
+      onChange(newValue);
+    },
+    [isSelected, onChange, value],
+  );
 
   return (
     <div ref={containerRef} className={`${styles.multiDropdown} ${className}`}>
       <Input
         disabled={disabled}
-        value={value.length > 0 ? getTitle(value) : search}
-        onChange={(value) => {
-          setSearch(value);
-        }}
+        value={search}
+        onChange={setSearch}
         placeholder={getTitle(value)}
         afterSlot={
           <button onClick={() => setIsOpen(true)}>
@@ -109,4 +125,4 @@ const MultiDropdown: React.FC<MultiDropdownProps> = ({
   );
 };
 
-export default MultiDropdown;
+export default React.memo(MultiDropdown);

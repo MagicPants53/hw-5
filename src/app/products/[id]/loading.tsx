@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
+
 import Loader from "@/shared/components/Loader";
 
 import styles from "./Product.module.scss";
-import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Lalasia | Loading",

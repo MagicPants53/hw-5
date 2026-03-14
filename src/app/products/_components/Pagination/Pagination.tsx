@@ -1,8 +1,9 @@
 import type { FC } from "react";
 
-import styles from "./Pagination.module.scss";
-import Button from "@/shared/components/Button";
 import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
+import Button from "@/shared/components/Button";
+
+import styles from "./Pagination.module.scss";
 
 type PanginationType = {
   pageCount: number;

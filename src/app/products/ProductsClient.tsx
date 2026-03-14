@@ -1,65 +1,39 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { observer, useLocalObservable } from "mobx-react-lite";
+
+import { useProductsController } from "@/app/_hooks";
+import Text from "@/shared/components/Text";
+import Input from "@/shared/components/Input";
+import Button from "@/shared/components/Button";
+import ProductStore, {
+  type ProductStoreHydration,
+} from "@/shared/store/ProductStore";
+import { mapCategoryToOption } from "@/shared/utils/categoryMapper";
+import { Meta } from "@/shared/utils/meta";
 
 import Card from "./_components/Card";
 import Pangination from "./_components/Pagination";
 import MultiDropdown, { type Option } from "./_components/MultiDropdown";
-
-import { mapCategoryToOption } from "@/shared/utils/categoryMapper";
-import { Meta } from "@/shared/utils/meta";
 import styles from "./Products.module.scss";
-import { useRouter } from "next/navigation";
-import { useProductQuerySync } from "@/shared/store/RootStore/hooks/useProductQuerySync";
-import ProductStore, {
-  type ProductStoreHydration,
-} from "@/shared/store/ProductStore";
-import { ProductType } from "@/shared/types/product";
-import Text from "@/shared/components/Text";
-import Input from "@/shared/components/Input";
-import Button from "@/shared/components/Button";
-import { paths } from "@/shared/config/paths";
-import { useCart } from "@/shared/store/RootStore/hooks/useCart";
 
 type ProductsClientProps = {
-  hydration: ProductStoreHydration;
+  initData: ProductStoreHydration;
 };
 
-const ProductsClient = ({ hydration }: ProductsClientProps) => {
-  const productStore = useLocalObservable(() => new ProductStore());
-  const { updateUrl } = useProductQuerySync(productStore);
-  const router = useRouter();
-  const { addToCart } = useCart();
-
-  useEffect(() => {
-    productStore.hydrate(hydration);
-  }, [productStore, hydration]);
-
-  const handleSearch = (value: string) => {
-    productStore.setSearchTermValue(value);
-    updateUrl();
-  };
-
-  const handlePageChange = (page: number) => {
-    productStore.setCurrentPageValue(page);
-    updateUrl();
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
-  const handleCategoriesChange = (selectedOptions: Option[]) => {
-    const categoryIds = selectedOptions.map((option) => Number(option.key));
-    productStore.setCategoriesValue(categoryIds);
-    updateUrl();
-  };
-
-  const handleAddToCart = (product: ProductType) => (e: React.MouseEvent) => {
-    e.stopPropagation();
-    addToCart(product, 1);
-  };
+const ProductsClient = ({ initData }: ProductsClientProps) => {
+  const productStore = useLocalObservable(() =>
+    ProductStore.fromHydration(initData),
+  );
+  const {
+    handleSearch,
+    handlePageChange,
+    handleCategoriesChange,
+    handleAddToCart,
+    handleProductClick,
+    clearFilters,
+  } = useProductsController(productStore);
 
   const getCategoryTitle = useCallback((selectedOptions: Option[]): string => {
     if (selectedOptions.length === 0) {
@@ -83,16 +57,17 @@ const ProductsClient = ({ hydration }: ProductsClientProps) => {
     }
   }, []);
 
-  const clearFilters = () => {
-    productStore.clearCategoriesValue();
-    productStore.setSearchTermValue("");
-    updateUrl();
-  };
+  const categoryOptions: Option[] = useMemo(
+    () => mapCategoryToOption(productStore.categoryList),
+    [productStore.categoryList],
+  );
 
-  const selectedCategories: Option[] = mapCategoryToOption(
-    productStore.categoryList.filter((cat) =>
-      productStore.selectedCategoryIds.includes(cat.id),
-    ),
+  const selectedCategories: Option[] = useMemo(
+    () =>
+      categoryOptions.filter((opt) =>
+        productStore.selectedCategoryIds.includes(Number(opt.key)),
+      ),
+    [categoryOptions, productStore.selectedCategoryIds],
   );
 
   const pageCount = Math.ceil(productStore.amount / productStore.pageSize);
@@ -113,7 +88,7 @@ const ProductsClient = ({ hydration }: ProductsClientProps) => {
           placeholder="Search product..."
         />
         <MultiDropdown
-          options={mapCategoryToOption(productStore.categoryList)}
+          options={categoryOptions}
           value={selectedCategories}
           onChange={handleCategoriesChange}
           getTitle={getCategoryTitle}
@@ -134,28 +109,38 @@ const ProductsClient = ({ hydration }: ProductsClientProps) => {
         </Text>
       </div>
       <div className={styles.product_list}>
-        {productStore.products.map((product) => (
-          <Card
-            key={product.id}
-            image={product.images[0].url}
-            captionSlot={product.category.title}
-            title={product.title}
-            subtitle={product.description}
-            contentSlot={"$" + product.price}
-            actionSlot={
-              <Button onClick={handleAddToCart(product)}>Add to Cart</Button>
-            }
-            onClick={() =>
-              router.push(`${paths.products}/${product.documentId}`)
-            }
-          />
-        ))}
+        {productStore.meta === Meta.loading &&
+          Array.from({ length: 6 }).map((_, index) => (
+            <Card
+              key={`skeleton-${index}`}
+              image={""}
+              title={""}
+              subtitle={""}
+              loading
+            />
+          ))}
+
+        {productStore.meta !== Meta.loading &&
+          productStore.products.map((product) => (
+            <Card
+              key={product.id}
+              image={product.images[0].url}
+              captionSlot={product.category.title}
+              title={product.title}
+              subtitle={product.description}
+              contentSlot={"$" + product.price}
+              actionSlot={
+                <Button onClick={handleAddToCart(product)}>Add to Cart</Button>
+              }
+              onClick={() => handleProductClick(product)}
+            />
+          ))}
       </div>
       {productStore.meta === Meta.success && pageCount > 1 && (
         <Pangination
           pageCount={pageCount}
           selectedPage={productStore.currentPage}
-          onChangePage={(page) => handlePageChange(page)}
+          onChangePage={handlePageChange}
         />
       )}
     </>
@@ -163,4 +148,3 @@ const ProductsClient = ({ hydration }: ProductsClientProps) => {
 };
 
 export default observer(ProductsClient);
-

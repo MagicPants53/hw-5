@@ -1,16 +1,22 @@
-import CartStore from './CartStore';
-import QueryParamsStore from './QueryParamsStore';
-import UserStore from './UserStore';
+import type { CartItem } from "@/shared/types/cartItem";
+
+import CartStore from "./CartStore";
+import UserStore from "./UserStore";
+
+export type RootStoreInitData = {
+  cart?: CartItem[] | null;
+};
 
 export default class RootStore {
-  readonly query = new QueryParamsStore();
   userStore = new UserStore();
-  cartStore = new CartStore();
+  cartStore: CartStore;
 
-  constructor() {
-    if (typeof window !== "undefined") {
-      this.query.setSearch(window.location.search);
-    }
+  constructor(initData?: RootStoreInitData) {
+    this.cartStore = new CartStore(initData?.cart);
     this.cartStore.setUserStore(this.userStore);
+  }
+
+  static create(initData?: RootStoreInitData): RootStore {
+    return new RootStore(initData);
   }
 }

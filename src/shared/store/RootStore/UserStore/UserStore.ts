@@ -37,8 +37,7 @@ class UserStore {
       meta: computed,
       isAuth: computed,
 
-      login: action,
-      register: action,
+      enter: action,
       logout: action,
     });
 
@@ -70,76 +69,52 @@ class UserStore {
     return !!this._user && !!this._token;
   }
 
-  async login(email: string, password: string) {
+  async enter(email: string, password: string, username?: string) {
     this._meta = Meta.loading;
 
-    try {
-      const response = await fetch(apiUrls.auth.login, {
+    const response = await fetch(
+      username ? apiUrls.auth.register : apiUrls.auth.login,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ identifier: email, password }),
-      });
+        body: JSON.stringify(
+          username
+            ? { username, email, password }
+            : {
+                identifier: email,
+                password,
+              },
+        ),
+      },
+    );
 
-      const result = await response.json();
+    const result = await response.json();
 
+    if (response.ok) {
       runInAction(() => {
         const { jwt, user } = result;
         this._token = jwt;
         this._user = user;
         this._meta = Meta.success;
-        // сохраняем пользователя, а JWT кладем только в cookie
         setAuthData(user);
         setAuthToken(jwt);
       });
-    } catch (error) {
+    } else {
       runInAction(() => {
         this._meta = Meta.error;
-      });
-    }
-  }
-
-  async register(username: string, email: string, password: string) {
-    this._meta = Meta.loading;
-
-    try {
-      const response = await fetch(apiUrls.auth.register, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      });
-      const result = await response.json();
-      runInAction(() => {
-        const { jwt, user } = result;
-        this._token = jwt;
-        this._user = user;
-        this._meta = Meta.success;
-        // сохраняем пользователя, а JWT кладем только в cookie
-        setAuthData(user);
-        setAuthToken(jwt);
-      });
-    } catch (error) {
-      runInAction(() => {
-        this._meta = Meta.error;
+        this._errorMsg = result.error.message;
       });
     }
   }
 
   async logout() {
-    runInAction(() => {
-      this._user = null;
-      this._token = null;
-      this._meta = Meta.initial;
-      clearAuthData();
-      clearAuthToken();
-    });
+    this._user = null;
+    this._token = null;
+    this._meta = Meta.initial;
+    clearAuthData();
+    clearAuthToken();
   }
 }
 

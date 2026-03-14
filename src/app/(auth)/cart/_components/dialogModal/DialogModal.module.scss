@@ -1,0 +1,17 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+
+  & .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1em;
+    margin-top: 1em;
+
+    & button {
+      width: 100px;
+      justify-content: center;
+    }
+  }
+}

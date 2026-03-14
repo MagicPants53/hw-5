@@ -5,15 +5,15 @@ import {
   observable,
   runInAction,
 } from "mobx";
-
-import { Meta } from "@/shared/utils/meta";
-import { mapRawProductsToList } from "@/shared/utils/productMapper";
-import { mapRawCategoryToList } from "@/shared/utils/categoryMapper";
-import { ProductCategory, ProductType } from "@/shared/types/product";
-import { apiUrls } from "@/shared/config/apiUrls";
-import { ApiConfig } from "@/shared/types/apiConfig";
-import { UserParams } from "@/shared/types/userParams";
 import qs from "qs";
+
+import { apiUrls } from "@/shared/config/apiUrls";
+import type { ApiConfig } from "@/shared/types/apiConfig";
+import type { ProductCategory, ProductType } from "@/shared/types/product";
+import type { UserParams } from "@/shared/types/userParams";
+import { mapRawCategoryToList } from "@/shared/utils/categoryMapper";
+import { mapRawProductsToList } from "@/shared/utils/productMapper";
+import { Meta } from "@/shared/utils/meta";
 
 type PrivateFields =
   | "_products"
@@ -71,20 +71,19 @@ class ProductStore {
       categoryList: computed,
       categoryMeta: computed,
       hasSelectedCategories: computed,
+      selectedCategoryTitles: computed,
 
       hydrate: action,
       setSearchTermValue: action,
       setCategoriesValue: action,
       clearCategoriesValue: action,
       setCurrentPageValue: action,
-      setPageSizeValue: action,
 
       getProductsCategories: action,
       setCategories: action,
       clearCategories: action,
       setSearchTerm: action,
       setCurrentPage: action,
-      setPageSize: action,
       getProducts: action,
     });
   }
@@ -135,52 +134,41 @@ class ProductStore {
       .filter(Boolean) as string[];
   }
 
+  static fromHydration(payload: ProductStoreHydration): ProductStore {
+    const store = new ProductStore();
+    store.hydrate(payload);
+    return store;
+  }
+
   hydrate(payload: ProductStoreHydration) {
-    runInAction(() => {
-      this._products = payload.products;
-      this._amount = payload.amount;
-      this._meta = payload.meta;
-      this._searchTerm = payload.searchTerm;
-      this._currentPage = payload.currentPage;
-      this._pageSize = payload.pageSize;
-      this._selectedCategoryIds = payload.selectedCategoryIds;
-      this._categoryList = payload.categoryList;
-      this._categoryMeta = payload.categoryMeta;
-    });
+    this._products = payload.products;
+    this._amount = payload.amount;
+    this._meta = payload.meta;
+    this._searchTerm = payload.searchTerm;
+    this._currentPage = payload.currentPage;
+    this._pageSize = payload.pageSize;
+    this._selectedCategoryIds = payload.selectedCategoryIds;
+    this._categoryList = payload.categoryList;
+    this._categoryMeta = payload.categoryMeta;
   }
 
   setSearchTermValue(term: string) {
-    runInAction(() => {
-      this._searchTerm = term;
-      this._currentPage = 1;
-    });
+    this._searchTerm = term;
+    this._currentPage = 1;
   }
 
   setCategoriesValue(categoryIds: number[]) {
-    runInAction(() => {
-      this._selectedCategoryIds = categoryIds;
-      this._currentPage = 1;
-    });
+    this._selectedCategoryIds = categoryIds;
+    this._currentPage = 1;
   }
 
   clearCategoriesValue() {
-    runInAction(() => {
-      this._selectedCategoryIds = [];
-      this._currentPage = 1;
-    });
+    this._selectedCategoryIds = [];
+    this._currentPage = 1;
   }
 
   setCurrentPageValue(page: number) {
-    runInAction(() => {
-      this._currentPage = page;
-    });
-  }
-
-  setPageSizeValue(size: number) {
-    runInAction(() => {
-      this._pageSize = size;
-      this._currentPage = 1;
-    });
+    this._currentPage = page;
   }
 
   async getProductsCategories() {
@@ -191,64 +179,39 @@ class ProductStore {
       const response = await fetch(apiUrls.productCategories());
       const result = await response.json();
 
-      runInAction(() => {
-        if (response.ok) {
-          try {
-            this._categoryList = mapRawCategoryToList(result.data);
-            this._categoryMeta = Meta.success;
-          } catch {
-            this._categoryMeta = Meta.error;
-            this._categoryList = [];
-          }
-        } else {
-          this._categoryMeta = Meta.error;
-        }
-      });
-    } catch {
-      runInAction(() => {
+      if (response.ok) {
+        this._categoryList = mapRawCategoryToList(result.data);
+        this._categoryMeta = Meta.success;
+      } else {
         this._categoryMeta = Meta.error;
-        this._categoryList = [];
-      });
+      }
+    } catch {
+      this._categoryMeta = Meta.error;
+      this._categoryList = [];
     }
   }
 
   setCategories(categoryIds: number[]) {
-    runInAction(() => {
-      this._selectedCategoryIds = categoryIds;
-      this._currentPage = 1;
-    });
+    this._selectedCategoryIds = categoryIds;
+    this._currentPage = 1;
     this.getProducts();
   }
 
   clearCategories() {
-    runInAction(() => {
-      this._selectedCategoryIds = [];
-      this._currentPage = 1;
-    });
+    this._selectedCategoryIds = [];
+    this._currentPage = 1;
     this.getProducts();
   }
 
   setSearchTerm(term: string) {
-    runInAction(() => {
-      this._searchTerm = term;
-      this._currentPage = 1;
-    });
+    this._searchTerm = term;
+    this._currentPage = 1;
     this.getProducts();
   }
 
   setCurrentPage(page: number) {
-    runInAction(() => {
-      if (this._currentPage === page) return;
-      this._currentPage = page;
-    });
-    this.getProducts();
-  }
-
-  setPageSize(size: number) {
-    runInAction(() => {
-      this._pageSize = size;
-      this._currentPage = 1;
-    });
+    if (this._currentPage === page) return;
+    this._currentPage = page;
     this.getProducts();
   }
 
@@ -295,20 +258,16 @@ class ProductStore {
     const query = qs.stringify(strapiConfig);
 
     const response = await fetch(apiUrls.products(query), {
-      method: "GET",
+      next: { revalidate: 60 },
+      cache: "force-cache",
     });
     const result = await response.json();
 
     runInAction(() => {
       if (response.ok) {
-        try {
-          this._meta = Meta.success;
-          this._amount = result.meta.pagination.total;
-          this._products = mapRawProductsToList(result.data);
-        } catch {
-          this._meta = Meta.error;
-          this._products = [];
-        }
+        this._meta = Meta.success;
+        this._amount = result.meta.pagination.total;
+        this._products = mapRawProductsToList(result.data);
       } else {
         this._meta = Meta.error;
       }

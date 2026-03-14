@@ -1,9 +1,11 @@
-"use client"
+"use client";
+
 import { useState, type FC } from "react";
+import Image from "next/image";
+
+import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
 
 import styles from "./Slider.module.scss";
-import ArrowDownIcon from "@/shared/components/icons/ArrowDownIcon";
-import Image from 'next/image'
 
 type SliderProps = {
   imgPaths?: string[];

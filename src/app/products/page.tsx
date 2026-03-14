@@ -1,13 +1,13 @@
+import type { Metadata } from "next";
 import qs from "qs";
 
-import ProductsClient from "./ProductsClient";
-
 import { apiUrls } from "@/shared/config/apiUrls";
+import type { ProductStoreHydration } from "@/shared/store/ProductStore";
+import type { ProductCategory } from "@/shared/types/product";
 import { Meta } from "@/shared/utils/meta";
 import { mapRawProductsToList } from "@/shared/utils/productMapper";
-import type { ProductCategory } from "@/shared/types/product";
-import type { ProductStoreHydration } from "@/shared/store/ProductStore/ProductStore";
-import { Metadata } from "next";
+
+import ProductsClient from "./ProductsClient";
 
 type RawCategory = {
   id: number;
@@ -122,12 +122,10 @@ export default async function ProductsPage({
     hydration = {
       ...hydration,
       categoryMeta:
-        hydration.categoryList.length > 0
-          ? (Meta.success)
-          : (Meta.error),
+        hydration.categoryList.length > 0 ? Meta.success : Meta.error,
       meta: Meta.error,
     };
   }
 
-  return <ProductsClient hydration={hydration} />;
+  return <ProductsClient initData={hydration} />;
 }

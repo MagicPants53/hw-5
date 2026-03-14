@@ -1,27 +1,30 @@
 "use client";
-import type { FC } from "react";
-import { observer } from "mobx-react-lite";
-import { useEffect } from "react";
-import { runInAction } from "mobx";
 
+import type { FC } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { runInAction } from "mobx";
+import { observer } from "mobx-react-lite";
+
+import { useLockScroll } from "@/app/_hooks";
+import Button from "@/shared/components/Button";
+import DeleteIcon from "@/shared/components/icons/DeleteIcon";
+import Loader from "@/shared/components/Loader";
+import Text from "@/shared/components/Text";
+import { useRootStore } from "@/shared/providers/StoreProvider";
+import type { CartItem } from "@/shared/types/cartItem";
 import { Meta } from "@/shared/utils/meta";
 
+import DialogModal from "./_components/dialogModal";
 import styles from "./Cart.module.scss";
-import Loader from "@/shared/components/Loader";
-import Link from "next/link";
-import Button from "@/shared/components/Button";
-import Text from "@/shared/components/Text";
-import { CartItem } from "@/shared/store/RootStore/CartStore/CartStore";
-import DeleteIcon from "@/shared/components/icons/DeleteIcon";
-import { useRootStore } from "@/shared/providers/StoreProvider";
-
 
 const Cart: FC = () => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [product, setProduct] = useState<CartItem>();
   const { cartStore } = useRootStore();
+  const modalRef = useRef(null);
 
-  useEffect(() => {
-    cartStore.loadCart();
-  }, [cartStore]);
+  useLockScroll(isOpen, () => setIsOpen(false), modalRef);
 
   if (cartStore.meta === Meta.loading)
     return (
@@ -45,8 +48,18 @@ const Cart: FC = () => {
 
   const handleChangeQuantity = (inc: boolean, item: CartItem) => {
     runInAction(() => {
-      if (inc) cartStore.updateQuantity(item.documentId, item.quantity + 1);
-      else cartStore.updateQuantity(item.documentId, item.quantity - 1);
+      if (!inc && item.quantity - 1 <= 0) {
+        setIsOpen(true);
+        setProduct(item);
+      } else {
+        cartStore.updateQuantity(item.documentId, inc);
+      }
+    });
+  };
+
+  const handleRemoveItem = (item: CartItem) => {
+    runInAction(() => {
+      cartStore.removeItem(item.documentId);
     });
   };
 
@@ -79,11 +92,10 @@ const Cart: FC = () => {
               </div>
               <button
                 className={styles.deleteBtn}
-                onClick={() =>
-                  runInAction(() => {
-                    cartStore.removeItem(item.documentId);
-                  })
-                }
+                onClick={() => {
+                  setIsOpen(true);
+                  setProduct(item);
+                }}
               >
                 <DeleteIcon />
               </button>
@@ -96,6 +108,17 @@ const Cart: FC = () => {
         <Text view="subtitle">Total: ${cartStore.totalPrice.toFixed(2)}</Text>
         <Button>Place an order</Button>
       </div>
+
+      <DialogModal
+        isOpen={isOpen}
+        ref={modalRef}
+        product={product}
+        onClose={() => setIsOpen(false)}
+        onRemove={() => {
+          product ? handleRemoveItem(product) : null;
+          setIsOpen(false);
+        }}
+      />
     </div>
   );
 };

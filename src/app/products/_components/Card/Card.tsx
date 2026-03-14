@@ -1,7 +1,7 @@
 import React from "react";
+import Image from "next/image";
 
 import Text from "@/shared/components/Text";
-import Image from 'next/image'
 
 import styles from "./Card.module.scss";
 
@@ -40,21 +40,21 @@ const Card: React.FC<CardProps> = ({
   if (loading) {
     return (
       <div
-        className={`${styles.card} ${styles.loading} ${className}`}
+        className={`${styles.card} ${styles.skeleton} ${className}`}
         onClick={onClick}
       >
-        <div className={styles.skeletonImage}></div>
+        <div className={styles.skeleton_image}></div>
         <div className={styles.card_body}>
           <div className={styles.card_content}>
-            <div className={styles.skeletonCaptionSlot}></div>
-            <div className={styles.skeletonTitle}></div>
-            <div className={styles.skeletonSubTitle}></div>
-            <div className={styles.skeletonSubTitle}></div>
-            <div className={styles.skeletonSubTitle}></div>
+            <div className={styles.skeleton_caption_slot}></div>
+            <div className={styles.skeleton_title}></div>
+            <div className={styles.skeleton_subtitle}></div>
+            <div className={styles.skeleton_subtitle}></div>
+            <div className={styles.skeleton_subtitle}></div>
           </div>
           <div className={styles.card_footer}>
-            <div className={styles.skeletonContentSlot}></div>
-            <div className={styles.skeletonActionSlot}></div>
+            <div className={styles.skeleton_content_slot}></div>
+            <div className={styles.skeleton_action_slot}></div>
           </div>
         </div>
       </div>
@@ -64,7 +64,13 @@ const Card: React.FC<CardProps> = ({
   return (
     <div className={`${styles.card} ${className}`} onClick={onClick}>
       {image !== "" ? (
-        <Image  className={styles.card_img} alt="" src={image}  width={500} height={500} />
+        <Image
+          className={styles.card_img}
+          alt=""
+          src={image}
+          width={500}
+          height={500}
+        />
       ) : null}
       <div className={styles.card_body}>
         <div className={styles.card_content}>
@@ -82,13 +88,13 @@ const Card: React.FC<CardProps> = ({
         </div>
         <div className={styles.card_footer}>
           {contentSlot ? (
-            <div className={styles.contentSlot}>
+            <div className={styles.content_slot}>
               <Text view="p-18" weight="bold">
                 {contentSlot}
               </Text>
             </div>
           ) : null}
-          <div className={styles.actionSlot}>{actionSlot}</div>
+          <div className={styles.action_slot}>{actionSlot}</div>
         </div>
       </div>
     </div>

@@ -1,10 +1,12 @@
-"use client"
-import React, { useEffect, useState } from 'react';
-import classNames from 'classnames';
-import Text from '../Text';
+"use client";
 
-import styles from './Button.module.scss';
-import Loader from '../Loader';
+import React, { useEffect, useState } from "react";
+import classNames from "classnames";
+
+import Loader from "../Loader";
+import Text from "../Text";
+
+import styles from "./Button.module.scss";
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Состояние загрузки */

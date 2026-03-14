@@ -19,6 +19,16 @@ a:hover {
   color: $accent-color;
 }
 
+button {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer; /* Добавьте для интерактивности */
+}
+
 #root {
   margin: 0 auto;
   text-align: center;
@@ -34,17 +44,4 @@ a:hover {
   @include respond("lg") {
     max-width: 1240px;
   }
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
 }

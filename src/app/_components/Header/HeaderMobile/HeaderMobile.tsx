@@ -1,25 +1,21 @@
 import Link from "next/link";
-
 import { useEffect, useRef, useState, type FC } from "react";
-import { runInAction } from "mobx";
+import { observer } from "mobx-react-lite";
+import { useRouter } from "next/navigation";
 
+import { useLockScroll } from "@/app/_hooks";
+import { paths } from "@/shared/config/paths";
+import { headersLinks } from "@/shared/config/headersLinks";
+import BurgerIcon from "@/shared/components/icons/BurgerIcon";
+import Logo from "@/shared/components/icons/Logo";
+import Modal from "@/shared/components/Modal";
+import Text from "@/shared/components/Text";
+import { useRootStore } from "@/shared/providers/StoreProvider";
 import { Meta } from "@/shared/utils/meta";
 
-import Modal from "../../Modal";
+import Actions from "../Actions";
 import AuthModal from "../../AuthModal";
-
 import styles from "./HeaderMobile.module.scss";
-import { observer } from "mobx-react-lite";
-import { useLockScroll } from "@/app/_hooks";
-import { useRouter } from "next/navigation";
-import { paths } from "@/shared/config/paths";
-import Logo from "@/shared/components/icons/Logo";
-import BurgerIcon from "@/shared/components/icons/BurgerIcon";
-import CartIcon from "@/shared/components/icons/CartIcon";
-import Text from "@/shared/components/Text";
-import UserIcon from "@/shared/components/icons/UserIcon";
-import { headersLinks } from "@/shared/config/headersLinks";
-import { useRootStore } from "@/shared/providers/StoreProvider";
 
 type HeaderMobileProps = {
   className?: string;
@@ -27,38 +23,34 @@ type HeaderMobileProps = {
 
 const HeaderMobile: FC<HeaderMobileProps> = ({ className }) => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const router = useRouter();
   const menuRef = useRef(null);
+  const modalRef = useRef(null);
 
   const rootStore = useRootStore();
   const userStore = rootStore.userStore;
   const cartStore = rootStore.cartStore;
 
   useEffect(() => {
-    cartStore.loadCart();
     setShowAuthModal(false);
   }, [userStore.isAuth]);
 
+  useLockScroll(showAuthModal, () => setShowAuthModal(false), modalRef);
   useLockScroll(isMenuOpen, () => setIsMenuOpen(false), menuRef);
-  useLockScroll(showAuthModal, () => setIsMenuOpen(false));
 
   const handleUserClick = () => {
     setIsMenuOpen(false);
-    runInAction(() => {
-      if (userStore.isAuth) {
-        router.push(paths.profile);
-      } else {
-        setShowAuthModal(true);
-      }
-    });
+    if (userStore.isAuth) {
+      router.push(paths.profile);
+    } else {
+      setShowAuthModal(true);
+    }
   };
 
   const handleCartClick = () => {
     setIsMenuOpen(false);
-    runInAction(() => {
-      router.push(paths.cart);
-    });
+    router.push(paths.cart);
   };
 
   return (
@@ -77,37 +69,23 @@ const HeaderMobile: FC<HeaderMobileProps> = ({ className }) => {
           <BurgerIcon color="accent" />
         </button>
 
-        <Modal isOpen={isMenuOpen} ref={menuRef}>
+        <Modal isOpen={isMenuOpen} ref={menuRef} position="right">
           <div className={styles.icons}>
             <Link href="/" onClick={() => setIsMenuOpen(false)}>
               <Logo />
             </Link>
-            <div className={styles.modal_actions}>
-              <button
-                onClick={handleCartClick}
-                className={styles.cartBtn}
-                title="Корзина"
-              >
-                <CartIcon />
-                {cartStore.totalItems > 0 && (
-                  <Text weight={"bold"} className={styles.cartBadge}>
-                    {cartStore.totalItems}
-                  </Text>
-                )}
-              </button>
-              <button
-                onClick={handleUserClick}
-                className={styles.userBtn}
-                title="Профиль"
-              >
-                <UserIcon />
-                {userStore.isAuth && userStore.user && (
-                  <Text weight={"bold"} className={styles.userInitials}>
-                    {userStore.user.username.slice(0, 2).toUpperCase()}
-                  </Text>
-                )}
-              </button>
-            </div>
+
+            <Actions
+              totalItems={cartStore.totalItems}
+              isAuth={userStore.isAuth}
+              userInitials={
+                userStore.user
+                  ? userStore.user.username.slice(0, 2).toUpperCase()
+                  : null
+              }
+              onCartClick={handleCartClick}
+              onUserClick={handleUserClick}
+            />
           </div>
           <nav className={styles.modal_tabs}>
             {headersLinks.map((link) => (
@@ -123,10 +101,7 @@ const HeaderMobile: FC<HeaderMobileProps> = ({ className }) => {
         </Modal>
       </div>
       {showAuthModal && userStore.meta !== Meta.success && (
-        <AuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-        />
+        <AuthModal isOpen={showAuthModal} ref={modalRef} />
       )}
     </>
   );

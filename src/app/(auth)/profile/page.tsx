@@ -1,12 +1,14 @@
 "use client";
+
 import type { FC } from "react";
+import { useRouter } from "next/navigation";
 import { runInAction } from "mobx";
 
-import styles from "./Profile.module.scss";
-import { useRouter } from "next/navigation";
 import Button from "@/shared/components/Button";
 import Text from "@/shared/components/Text";
 import { useRootStore } from "@/shared/providers/StoreProvider";
+
+import styles from "./Profile.module.scss";
 
 const Profile: FC = () => {
   const { userStore } = useRootStore();
